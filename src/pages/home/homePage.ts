@@ -16,7 +16,7 @@ export class HomePage {
   }
 
   async goto() {
-    this.page.goto(process.env.site_url!);
+    this.page.goto(`${process.env.site_url!}/wp-admin/`);
     this.page.waitForLoadState('load');
   }
 }

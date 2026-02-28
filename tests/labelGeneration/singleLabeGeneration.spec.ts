@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures.ts';
+import { test, expect } from '../fixtures/fixtures.ts';
 
 test('Single Label Generation', async ({ page, homePage, settingsPage }) => {
   await homePage.goto();
@@ -7,5 +7,13 @@ test('Single Label Generation', async ({ page, homePage, settingsPage }) => {
   await settingsPage.selectTab('Packaging');
   await settingsPage.selectParcelPackingOption('Default: Pack items individually');
   await expect(settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
-  await settingsPage.saveChangesButtonInPackaging.click();
+});
+
+test('Order Product from Checkout', async ({ page, homePage, settingsPage, shopPage }) => {
+  await shopPage.goto();
+  await page.waitForLoadState('domcontentloaded');
+  await shopPage.search.fill('product simple 1');
+  await page.keyboard.press('Enter');
+  await shopPage.addToCart.click();
+  await page.waitForTimeout(4000);
 });

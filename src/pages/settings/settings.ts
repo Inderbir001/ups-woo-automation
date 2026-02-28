@@ -23,8 +23,11 @@ export class SettingsPage {
   }
 
   async selectParcelPackingOption(optionName: string) {
-    await this.parcelPackingDropdown.click();
-    const option = this.parcelPackingDropdownOptions.filter({ hasText: optionName });
-    await option.first().click();
+    if ((await this.parcelPackingDropdown.textContent()) !== optionName) {
+      await this.parcelPackingDropdown.click();
+      const option = this.parcelPackingDropdownOptions.filter({ hasText: optionName });
+      await option.first().click();
+      await this.saveChangesButtonInPackaging.click();
+    }
   }
 }
