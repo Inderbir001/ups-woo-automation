@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/fixtures';
+import { test, expect } from './fixtures/fixtures';
 
 test.describe.serial('Label Flow', () => {
   let orderId: string;
