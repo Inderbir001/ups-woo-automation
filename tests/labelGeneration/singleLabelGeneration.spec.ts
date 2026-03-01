@@ -1,23 +1,29 @@
 import { test, expect } from '../fixtures/fixtures';
 
-test('Single Label Generation', async ({ page, homePage, settingsPage }) => {
+test('Change Packaging type to "Default: Pack items individually"', async ({ page, homePage, settingsPage }) => {
   await homePage.goto();
-  await homePage.UPSplugin.click();
-  await homePage.settingsInUPSplugin.click();
+  await homePage.selectAdminMenu('UPS Shipping', 'Settings');
   await settingsPage.selectTab('Packaging');
   await settingsPage.selectParcelPackingOption('Default: Pack items individually');
   await expect(settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
 });
 
-test.only('Order Product from Checkout', async ({ page, shopPage }) => {
+test('Order Product from Checkout', async ({ page, shopPage }) => {
+  await page.goto(`/classic-cart`);
+  await shopPage.clearCartIfNotEmpty();
   await shopPage.goto();
   await page.waitForLoadState('domcontentloaded');
   await shopPage.search.fill('product simple 1');
   await page.keyboard.press('Enter');
   await shopPage.addToCart.click();
-  await page.goto(`${process.env.site_url}/classic-checkout`);
+  await page.goto(`/classic-checkout`);
   await shopPage.fillCheckoutDetails('United States (US)', '1100 Wyoming', 'St. Louis', 'Missouri', '63119');
   await shopPage.selectShippingMethod('UPS Next Day Air®');
   await shopPage.cickOnPlaceOrder();
-  // await page.waitForTimeout(20000);
+});
+
+test('Go To WooCommerce > Orders > Label Generation', async ({ page, homePage, settingsPage }) => {
+  await homePage.goto();
+  await homePage.selectAdminMenu('WooCommerce', 'Orders');
+  await page.waitForTimeout(10000);
 });

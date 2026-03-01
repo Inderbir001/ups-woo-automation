@@ -15,8 +15,19 @@ export class HomePage {
     this.settingsInUPSplugin = this.page.locator('a[href="admin.php?page=ph_ups_plugin_settings"]');
   }
 
+  async selectAdminMenu(mainMenu: string, subMenu?: string) {
+    const adminMenu = this.page.locator('#adminmenu');
+    const mainMenuItem = adminMenu.locator('li').filter({ has: this.page.getByRole('link', { name: mainMenu, exact: true }) });
+    const mainLink = mainMenuItem.getByRole('link', { name: mainMenu, exact: true });
+    await mainLink.click();
+    if (subMenu) {
+      const subLink = mainMenuItem.getByRole('link', { name: new RegExp(`^${subMenu}`) });
+      await subLink.click();
+    }
+  }
+
   async goto() {
-    this.page.goto(`${process.env.site_url!}/wp-admin/`);
-    this.page.waitForLoadState('load');
+    await this.page.goto(`/wp-admin/`);
+    await this.page.waitForLoadState('load');
   }
 }

@@ -23,6 +23,8 @@ export class ShopPage {
   readonly shippingMethod: Locator;
   readonly placeOrder: Locator;
   readonly getOrderNumber: Locator;
+  readonly quantityInCart: Locator;
+  readonly updateCart: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -46,6 +48,37 @@ export class ShopPage {
     this.shippingMethod = this.page.locator('#shipping_method');
     this.placeOrder = this.page.locator('#place_order');
     this.getOrderNumber = this.page.getByText('Order number:').locator('strong');
+    this.quantityInCart = this.page.locator('#quantity_69a42636dd026');
+    this.updateCart = this.page.getByRole('button', { name: 'Update cart' });
+  }
+
+  async clearCartIfNotEmpty() {
+    // await page.goto(`${process.env.site_url}/classic-cart`);
+
+    const cartItems = this.page.locator('tr.woocommerce-cart-form__cart-item');
+
+    const count = await cartItems.count();
+
+    if (count > 0) {
+      console.log(`Cart has ${count} items. Removing all...`);
+
+      while ((await cartItems.count()) > 0) {
+        await cartItems.first().locator('a.remove').click();
+
+        // Wait for cart to update after removal
+        await this.page.waitForLoadState('networkidle');
+      }
+
+      // Optional: verify cart empty message
+      // await expect(this.page.locator('.cart-empty')).toBeVisible();
+    } else {
+      console.log('Cart is already empty.');
+    }
+    // await this.page.getByRole('button', { name: 'Return to shop' }).click();
+  }
+
+  async fillQuantityInCart(qty: string) {
+    this.quantityInCart.fill(qty);
   }
 
   async cickOnPlaceOrder() {
@@ -77,9 +110,6 @@ export class ShopPage {
   }
 
   async goto() {
-    await this.page.goto('/wp-login.php?action=logout');
-    await this.logOutLink.click();
-    await this.page.waitForLoadState('networkidle');
-    await this.page.goto(`${process.env.site_url}/shop/`);
+    await this.page.goto(`/shop/`);
   }
 }
