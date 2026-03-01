@@ -26,6 +26,7 @@ export class ShopPage {
   readonly quantityInCart: Locator;
   readonly updateCart: Locator;
 
+
   constructor(page: Page) {
     this.page = page;
 
@@ -53,28 +54,18 @@ export class ShopPage {
   }
 
   async clearCartIfNotEmpty() {
-    // await page.goto(`${process.env.site_url}/classic-cart`);
-
     const cartItems = this.page.locator('tr.woocommerce-cart-form__cart-item');
-
     const count = await cartItems.count();
-
     if (count > 0) {
       console.log(`Cart has ${count} items. Removing all...`);
-
       while ((await cartItems.count()) > 0) {
         await cartItems.first().locator('a.remove').click();
-
         // Wait for cart to update after removal
         await this.page.waitForLoadState('networkidle');
       }
-
-      // Optional: verify cart empty message
-      // await expect(this.page.locator('.cart-empty')).toBeVisible();
     } else {
       console.log('Cart is already empty.');
     }
-    // await this.page.getByRole('button', { name: 'Return to shop' }).click();
   }
 
   async fillQuantityInCart(qty: string) {
@@ -86,6 +77,7 @@ export class ShopPage {
     await this.page.waitForLoadState();
     const orderId = await this.getOrderNumber.innerText();
     console.log(`Order Id = `, orderId);
+    return orderId;
   }
 
   async selectShippingMethod(serviceName: string) {
