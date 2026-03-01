@@ -20,6 +20,9 @@ export class ShopPage {
   readonly countryOrRegionInputField: Locator;
   readonly stateInputFiled: Locator;
   readonly logOutLink: Locator;
+  readonly shippingMethod: Locator;
+  readonly placeOrder: Locator;
+  readonly getOrderNumber: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -40,6 +43,21 @@ export class ShopPage {
     this.zipCode = this.page.locator('#billing_postcode');
     this.phoneNumber = this.page.locator('#billing_phone');
     this.logOutLink = this.page.getByRole('link', { name: 'log out' });
+    this.shippingMethod = this.page.locator('#shipping_method');
+    this.placeOrder = this.page.locator('#place_order');
+    this.getOrderNumber = this.page.getByText('Order number:').locator('strong');
+  }
+
+  async cickOnPlaceOrder() {
+    await this.placeOrder.click();
+    await this.page.waitForLoadState();
+    const orderId = await this.getOrderNumber.innerText();
+    console.log(`Order Id = `, orderId);
+  }
+
+  async selectShippingMethod(serviceName: string) {
+    await expect(this.shippingMethod).toContainText(serviceName);
+    await this.page.getByRole('radio', { name: serviceName }).first().check();
   }
 
   async fillCheckoutDetails(country: string, street: string, town: string, state: string, zip: any) {

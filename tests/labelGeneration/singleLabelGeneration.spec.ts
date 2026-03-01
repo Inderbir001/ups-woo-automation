@@ -9,7 +9,7 @@ test('Single Label Generation', async ({ page, homePage, settingsPage }) => {
   await expect(settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
 });
 
-test('Order Product from Checkout', async ({ page, shopPage }) => {
+test.only('Order Product from Checkout', async ({ page, shopPage }) => {
   await shopPage.goto();
   await page.waitForLoadState('domcontentloaded');
   await shopPage.search.fill('product simple 1');
@@ -17,5 +17,7 @@ test('Order Product from Checkout', async ({ page, shopPage }) => {
   await shopPage.addToCart.click();
   await page.goto(`${process.env.site_url}/classic-checkout`);
   await shopPage.fillCheckoutDetails('United States (US)', '1100 Wyoming', 'St. Louis', 'Missouri', '63119');
-  await page.waitForTimeout(20000);
+  await shopPage.selectShippingMethod('UPS Next Day Air®');
+  await shopPage.cickOnPlaceOrder();
+  // await page.waitForTimeout(20000);
 });
