@@ -19,6 +19,7 @@ export class ShopPage {
   readonly phoneNumber: Locator;
   readonly countryOrRegionInputField: Locator;
   readonly stateInputFiled: Locator;
+  readonly logOutLink: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -38,6 +39,7 @@ export class ShopPage {
     this.stateInputFiled = this.page.locator('.select2-search__field');
     this.zipCode = this.page.locator('#billing_postcode');
     this.phoneNumber = this.page.locator('#billing_phone');
+    this.logOutLink = this.page.getByRole('link', { name: 'log out' });
   }
 
   async fillCheckoutDetails(country: string, street: string, town: string, state: string, zip: any) {
@@ -57,6 +59,9 @@ export class ShopPage {
   }
 
   async goto() {
+    await this.page.goto('/wp-login.php?action=logout');
+    await this.logOutLink.click();
+    await this.page.waitForLoadState('networkidle');
     await this.page.goto(`${process.env.site_url}/shop/`);
   }
 }

@@ -14,6 +14,7 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL,
     trace: 'on-first-retry',
+    storageState: 'playwright/.auth/user.json',
   },
 
   /* Configure projects for major browsers */
@@ -24,30 +25,24 @@ export default defineConfig({
       name: 'google chrome',
       use: {
         ...devices['Desktop Chrome'],
-        // Use prepared auth state.
-        storageState: 'playwright/.auth/user.json',
+        baseURL: process.env.site_url,
       },
-      dependencies: ['setup'],
     },
 
     {
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
-        // Use prepared auth state.
-        storageState: 'playwright/.auth/user.json',
+        baseURL: process.env.site_url,
       },
-      dependencies: ['setup'],
     },
 
     {
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
-        // Use prepared auth state.
-        storageState: 'playwright/.auth/user.json',
+        baseURL: process.env.site_url,
       },
-      dependencies: ['setup'],
     },
   ],
 

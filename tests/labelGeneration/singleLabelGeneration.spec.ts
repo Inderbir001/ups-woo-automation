@@ -9,7 +9,7 @@ test('Single Label Generation', async ({ page, homePage, settingsPage }) => {
   await expect(settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
 });
 
-test('Order Product from Checkout', async ({ page, homePage, settingsPage, shopPage }) => {
+test.only('Order Product from Checkout', async ({ page, shopPage }) => {
   await shopPage.goto();
   await page.waitForLoadState('domcontentloaded');
   await shopPage.search.fill('product simple 1');

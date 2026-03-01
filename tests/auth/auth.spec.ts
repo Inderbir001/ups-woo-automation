@@ -14,5 +14,5 @@ setup('authenticate', async ({ page }) => {
   await loginPage.loginBtn.click();
   await page.waitForLoadState('load');
   await page.waitForURL(`${process.env.site_url!}/wp-admin/`);
-  await page.context().storageState({ path: authFile });
+  await page.context().storageState({ path: './playwright/.auth/user.json' });
 });

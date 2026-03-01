@@ -5,6 +5,6 @@ node_modules/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-playwright/.auth/users.json
 .env
 .prettierrc
+playwright/.auth/user.json
