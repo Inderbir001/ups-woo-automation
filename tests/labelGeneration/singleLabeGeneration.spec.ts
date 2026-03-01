@@ -15,5 +15,7 @@ test('Order Product from Checkout', async ({ page, homePage, settingsPage, shopP
   await shopPage.search.fill('product simple 1');
   await page.keyboard.press('Enter');
   await shopPage.addToCart.click();
-  await page.waitForTimeout(4000);
+  await page.goto(`${process.env.site_url}/classic-checkout`);
+  await shopPage.fillCheckoutDetails('United States (US)', '1100 Wyoming', 'St. Louis', 'Missouri', '63119');
+  await page.waitForTimeout(20000);
 });
