@@ -2,7 +2,9 @@
   "name": "ups-woo-automation",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "postinstall": "playwright install"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -10,7 +12,8 @@
   "devDependencies": {
     "@faker-js/faker": "^10.3.0",
     "@playwright/test": "^1.58.2",
-    "@types/node": "^25.3.2"
+    "@types/node": "^25.3.2",
+    "typescript": "^5.7.2"
   },
   "dependencies": {
     "dotenv": "^17.3.1"

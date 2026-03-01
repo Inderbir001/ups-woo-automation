@@ -1,0 +1,75 @@
+{
+  "cookies": [
+    {
+      "name": "wordpress_sec_5179130f84aa3d01cd80f9703ac6e686",
+      "value": "vyshnavi%40pluginhive.com%7C1772458101%7Cw92szn7yiJOSe6NQDyrxn7aO98GBru9M2zLC0z1PcYo%7C53d83236b5d5e9d98ca63d64c257936a1e58f5ef0f50a71ff3ac139ebb84bef2",
+      "domain": "woocommerce-432251-6014015.cloudwaysapps.com",
+      "path": "/wp-content/plugins",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "wordpress_sec_5179130f84aa3d01cd80f9703ac6e686",
+      "value": "vyshnavi%40pluginhive.com%7C1772458101%7Cw92szn7yiJOSe6NQDyrxn7aO98GBru9M2zLC0z1PcYo%7C53d83236b5d5e9d98ca63d64c257936a1e58f5ef0f50a71ff3ac139ebb84bef2",
+      "domain": "woocommerce-432251-6014015.cloudwaysapps.com",
+      "path": "/wp-admin",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "wordpress_test_cookie",
+      "value": "WP%20Cookie%20check",
+      "domain": "woocommerce-432251-6014015.cloudwaysapps.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "wordpress_logged_in_5179130f84aa3d01cd80f9703ac6e686",
+      "value": "vyshnavi%40pluginhive.com%7C1772458101%7Cw92szn7yiJOSe6NQDyrxn7aO98GBru9M2zLC0z1PcYo%7Cf35435c74d434c894bb1f67275e94d0a79a34a2040547ab1399fb0c648dc8dca",
+      "domain": "woocommerce-432251-6014015.cloudwaysapps.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "tk_ai",
+      "value": "woo%3Aik03E696jSL8TWJlOoCb7Fbi",
+      "domain": "woocommerce-432251-6014015.cloudwaysapps.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "wp-settings-14",
+      "value": "libraryContent%3Dbrowse%26plugin_check_category_preferences%3Dgeneral__plugin_repo__security__performance__accessibility%26posts_list_mode%3Dlist",
+      "domain": "woocommerce-432251-6014015.cloudwaysapps.com",
+      "path": "/",
+      "expires": 1803821303.080392,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "wp-settings-time-14",
+      "value": "1772285302",
+      "domain": "woocommerce-432251-6014015.cloudwaysapps.com",
+      "path": "/",
+      "expires": 1803821303.080456,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

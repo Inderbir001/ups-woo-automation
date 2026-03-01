@@ -2,7 +2,9 @@ import { test as setup, expect } from '@playwright/test';
 import path from 'path';
 import { LoginPage } from '../../src/pages/auth/loginPage';
 
-const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+const authFile = path.join(__dirname, '../../playwright/.auth/user.json');
+
+setup.use({ storageState: { cookies: [], origins: [] } });
 
 setup('authenticate', async ({ page }) => {
   const loginPage = new LoginPage(page);

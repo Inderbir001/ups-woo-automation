@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/fixtures.ts';
+import { test, expect } from '../fixtures/fixtures';
 
 test('Single Label Generation', async ({ page, homePage, settingsPage }) => {
   await homePage.goto();
