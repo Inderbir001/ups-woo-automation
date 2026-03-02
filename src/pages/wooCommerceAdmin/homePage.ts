@@ -34,7 +34,7 @@ export class HomePage {
   async clickAndCheckVerifyPrintLabel() {
     const [download] = await Promise.all([this.page.waitForEvent('download'), this.printLabelInWSSOrdersPage.click()]);
     const fileName = download.suggestedFilename();
-    console.log('Label Downloaded: ',fileName);
+    console.log('Label Downloaded: ', fileName);
     expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
   }
 

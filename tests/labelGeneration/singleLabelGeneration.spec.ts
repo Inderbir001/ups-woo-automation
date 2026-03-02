@@ -30,7 +30,6 @@ test.describe.serial('Label Flow', () => {
   test('Go To WooCommerce > Orders > Label Generation', async ({ page, basePage, ordersPage }) => {
     test.setTimeout(120000);
     await ordersPage.goto();
-    // await basePage.selectAdminMenu('WooCommerce', 'Orders');
     await ordersPage.selectOrderInWSSOrdersPage(orderId);
     await expect(ordersPage.generatePackagesBtn).toBeVisible();
     await ordersPage.generatePackagesBtn.click();
