@@ -1,12 +1,13 @@
+import { OrdersPage } from '../../src/pages/wooCommerceAdmin/ordersPage';
 import { test, expect } from '../fixtures/fixtures';
 
 test.describe.serial('Label Flow', () => {
   let orderId: string;
   let serviceName = 'UPS Next Day Air®';
 
-  test('Change Packaging type to "Default: Pack items individually"', async ({ page, homePage, settingsPage }) => {
+  test('Change Packaging type to "Default: Pack items individually"', async ({ page, homePage, settingsPage, basePage }) => {
     await homePage.goto();
-    await homePage.selectAdminMenu('UPS Shipping', 'Settings');
+    await basePage.selectAdminMenu('UPS Shipping', 'Settings');
     await settingsPage.selectTab('Packaging');
     await settingsPage.selectParcelPackingOption('Default: Pack items individually');
     await expect(settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
@@ -26,23 +27,23 @@ test.describe.serial('Label Flow', () => {
     orderId = await shopPage.cickOnPlaceOrder();
   });
 
-  test('Go To WooCommerce > Orders > Label Generation', async ({ page, homePage, settingsPage }) => {
+  test('Go To WooCommerce > Orders > Label Generation', async ({ page, basePage, ordersPage }) => {
     test.setTimeout(120000);
-    await homePage.goto();
-    await homePage.selectAdminMenu('WooCommerce', 'Orders');
-    await homePage.selectOrderInWSSOrdersPage(orderId);
-    await expect(homePage.generatePackagesBtn).toBeVisible();
-    await homePage.generatePackagesBtn.click();
-    await expect(homePage.calculateRatesBtn).toBeVisible();
-    await homePage.calculateRatesBtn.click();
-    await expect(homePage.verifyPackages).toBeVisible();
-    await homePage.chooseServiceInWssOrdersPage(serviceName);
-    await expect(homePage.confirmShipmentBtn).toBeVisible();
-    await homePage.confirmShipmentBtn.click();
+    await ordersPage.goto();
+    // await basePage.selectAdminMenu('WooCommerce', 'Orders');
+    await ordersPage.selectOrderInWSSOrdersPage(orderId);
+    await expect(ordersPage.generatePackagesBtn).toBeVisible();
+    await ordersPage.generatePackagesBtn.click();
+    await expect(ordersPage.calculateRatesBtn).toBeVisible();
+    await ordersPage.calculateRatesBtn.click();
+    await expect(ordersPage.verifyPackages).toBeVisible();
+    await ordersPage.chooseServiceInWssOrdersPage(serviceName);
+    await expect(ordersPage.confirmShipmentBtn).toBeVisible();
+    await ordersPage.confirmShipmentBtn.click();
     await page.waitForLoadState();
     await page.goBack();
     await page.waitForLoadState('load');
-    await expect(homePage.printLabelInWSSOrdersPage).toBeVisible();
-    await homePage.clickAndCheckVerifyPrintLabel();
+    await expect(ordersPage.printLabelInWSSOrdersPage).toBeVisible();
+    await ordersPage.clickAndCheckVerifyPrintLabel();
   });
 });
