@@ -5,6 +5,7 @@ import { SettingsPage } from '../../src/pages/UPSplugin/settings';
 import { ShopPage } from '../../src/pages/shop/shopPage';
 import { BasePage } from '../../src/pages/basePage';
 import { OrdersPage } from '../../src/pages/wooCommerceAdmin/ordersPage';
+import { StatusPage } from '../../src/pages/wooCommerceAdmin/status';
 
 type MyFixtures = {
   loginPage: LoginPage;
@@ -13,6 +14,7 @@ type MyFixtures = {
   shopPage: ShopPage;
   basePage: BasePage;
   ordersPage: OrdersPage;
+  statusPage: StatusPage;
 };
 
 export const test = base.extend<MyFixtures>({
@@ -38,6 +40,10 @@ export const test = base.extend<MyFixtures>({
 
   ordersPage: async ({ page }, use) => {
     await use(new OrdersPage(page));
+  },
+
+  statusPage: async ({ page }, use) => {
+    await use(new StatusPage(page));
   },
 });
 

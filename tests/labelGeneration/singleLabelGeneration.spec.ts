@@ -1,4 +1,5 @@
 import { OrdersPage } from '../../src/pages/wooCommerceAdmin/ordersPage';
+import { StatusPage } from '../../src/pages/wooCommerceAdmin/status';
 import { test, expect } from '../fixtures/fixtures';
 
 test.describe.serial('Label Flow', () => {
@@ -25,6 +26,12 @@ test.describe.serial('Label Flow', () => {
     await shopPage.fillCheckoutDetails('United States (US)', '1100 Wyoming', 'St. Louis', 'Missouri', '63119');
     await shopPage.selectShippingMethod(serviceName);
     orderId = await shopPage.cickOnPlaceOrder();
+  });
+
+  test.only('Verify Rates Log', async ({ page, statusPage }) => {
+    await statusPage.goto();
+    await statusPage.logs.click();
+    await page.waitForLoadState();
   });
 
   test('Go To WooCommerce > Orders > Label Generation', async ({ page, basePage, ordersPage }) => {
