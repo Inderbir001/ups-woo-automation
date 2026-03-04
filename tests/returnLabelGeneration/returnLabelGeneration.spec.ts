@@ -15,7 +15,6 @@ test.describe.serial('Label Flow', () => {
   });
 
   test('Order Product from Checkout', async ({ page, shopPage }) => {
-    await page.pause();
     await page.goto(`/classic-cart`);
     await shopPage.clearCartIfNotEmpty();
     await shopPage.goto();
@@ -36,7 +35,7 @@ test.describe.serial('Label Flow', () => {
   });
 
   test('Go To WooCommerce > Orders > Label Generation', async ({ page, basePage, ordersPage }) => {
-    test.setTimeout(120000);
+    test.setTimeout(0);
     await ordersPage.goto();
     await ordersPage.selectOrderInWSSOrdersPage(orderId);
     await expect(ordersPage.generatePackagesBtn).toBeVisible();
@@ -52,5 +51,7 @@ test.describe.serial('Label Flow', () => {
     await page.waitForLoadState('load');
     await expect(ordersPage.printLabelInWSSOrdersPage).toBeVisible();
     await ordersPage.clickAndCheckVerifyPrintLabel();
+    await ordersPage.selectOptionReturnService.selectOption('UPS® Ground');
+    await ordersPage.clickOnReturnLabelBtn();
   });
 });

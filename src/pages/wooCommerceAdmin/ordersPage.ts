@@ -13,6 +13,8 @@ export class OrdersPage {
   readonly verifyPackages: Locator;
   readonly confirmShipmentBtn: Locator;
   readonly printLabelInWSSOrdersPage: Locator;
+  readonly selectOptionReturnService: Locator;
+  readonly returnLabelBtn: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -27,6 +29,13 @@ export class OrdersPage {
     this.verifyPackages = this.page.getByText('Step 2: Initiate your shipment.');
     this.confirmShipmentBtn = this.page.locator('.button.ups_create_shipment');
     this.printLabelInWSSOrdersPage = this.page.getByRole('link', { name: 'Print Label' });
+    this.returnLabelBtn = this.page.getByRole('link', { name: 'Generate Return label' });
+    this.selectOptionReturnService = this.page.locator('#return_label_service');
+  }
+
+  async clickOnReturnLabelBtn(){
+  await expect(this.returnLabelBtn).toBeVisible();
+    await this.returnLabelBtn.click();  
   }
 
   async clickAndCheckVerifyPrintLabel() {
