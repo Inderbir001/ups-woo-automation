@@ -1,55 +1,56 @@
-import { OrdersPage } from '../../src/pages/wooCommerceAdmin/ordersPage';
-import { StatusPage } from '../../src/pages/wooCommerceAdmin/status';
 import { test, expect } from '../fixtures/fixtures';
 
 test.describe.serial('Label Flow', () => {
   let orderId: string;
   let serviceName = 'UPS Next Day Air®';
 
-  test('Change Packaging type to "Default: Pack items individually"', async ({ page, homePage, settingsPage, basePage }) => {
-    await homePage.goto();
-    await basePage.selectAdminMenu('UPS Shipping', 'Settings');
-    await settingsPage.selectTab('Packaging');
-    await settingsPage.selectParcelPackingOption('Default: Pack items individually');
-    await expect(settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
+  test('Change Packaging type to "Default: Pack items individually"', async ({ page, pages }) => {
+    await pages.homePage.goto();
+    await pages.basePage.selectAdminMenu('UPS Shipping', 'Settings');
+    await pages.settingsPage.selectTab('Packaging');
+    await pages.settingsPage.selectParcelPackingOption('Default: Pack items individually');
+    await expect(pages.settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
   });
 
-  test('Order Product from Checkout', async ({ page, shopPage }) => {
+  test('Order Product from Checkout', async ({ page, pages }) => {
     await page.goto(`/classic-cart`);
-    await shopPage.clearCartIfNotEmpty();
-    await shopPage.goto();
+    await pages.shopPage.clearCartIfNotEmpty();
+    await pages.shopPage.goto();
     await page.waitForLoadState('domcontentloaded');
-    await shopPage.search.fill('product simple 1');
+    await pages.shopPage.search.fill('product simple 1');
     await page.keyboard.press('Enter');
-    await shopPage.addToCart.click();
+    await pages.shopPage.addToCart.click();
     await page.goto(`/classic-checkout`);
-    await shopPage.fillCheckoutDetails('United States (US)', '1100 Wyoming', 'St. Louis', 'Missouri', '63119');
-    await shopPage.selectShippingMethod(serviceName);
-    orderId = await shopPage.cickOnPlaceOrder();
+    await pages.shopPage.fillCheckoutDetails('United States (US)', '1100 Wyoming', 'St. Louis', 'Missouri', '63119');
+    await pages.shopPage.selectShippingMethod(serviceName);
+    orderId = await pages.shopPage.cickOnPlaceOrder();
   });
 
-  test.only('Verify Rates Log', async ({ page, statusPage }) => {
-    await statusPage.goto();
-    await statusPage.logs.click();
+  test.only('Verify Rates Log', async ({ page, pages }) => {
+    await pages.statusPage.goto();
+    await pages.statusPage.logs.click();
     await page.waitForLoadState();
+    await pages.statusPage.expectTableHeadersToBePresent();
+    await pages.statusPage.clickCell(1, 2);
+    await page.waitForTimeout(10000);
   });
 
-  test('Go To WooCommerce > Orders > Label Generation', async ({ page, basePage, ordersPage }) => {
+  test('Go To WooCommerce > Orders > Label Generation', async ({ page, pages }) => {
     test.setTimeout(120000);
-    await ordersPage.goto();
-    await ordersPage.selectOrderInWSSOrdersPage(orderId);
-    await expect(ordersPage.generatePackagesBtn).toBeVisible();
-    await ordersPage.generatePackagesBtn.click();
-    await expect(ordersPage.calculateRatesBtn).toBeVisible();
-    await ordersPage.calculateRatesBtn.click();
-    await expect(ordersPage.verifyPackages).toBeVisible();
-    await ordersPage.chooseServiceInWssOrdersPage(serviceName);
-    await expect(ordersPage.confirmShipmentBtn).toBeVisible();
-    await ordersPage.confirmShipmentBtn.click();
+    await pages.ordersPage.goto();
+    await pages.ordersPage.selectOrderInWSSOrdersPage(orderId);
+    await expect(pages.ordersPage.generatePackagesBtn).toBeVisible();
+    await pages.ordersPage.generatePackagesBtn.click();
+    await expect(pages.ordersPage.calculateRatesBtn).toBeVisible();
+    await pages.ordersPage.calculateRatesBtn.click();
+    await expect(pages.ordersPage.verifyPackages).toBeVisible();
+    await pages.ordersPage.chooseServiceInWssOrdersPage(serviceName);
+    await expect(pages.ordersPage.confirmShipmentBtn).toBeVisible();
+    await pages.ordersPage.confirmShipmentBtn.click();
     await page.waitForLoadState();
     await page.goBack();
     await page.waitForLoadState('load');
-    await expect(ordersPage.printLabelInWSSOrdersPage).toBeVisible();
-    await ordersPage.clickAndCheckVerifyPrintLabel();
+    await expect(pages.ordersPage.printLabelInWSSOrdersPage).toBeVisible();
+    await pages.ordersPage.clickAndCheckVerifyPrintLabel();
   });
 });

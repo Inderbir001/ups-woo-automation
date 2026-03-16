@@ -7,7 +7,7 @@ import { BasePage } from '../../src/pages/basePage';
 import { OrdersPage } from '../../src/pages/wooCommerceAdmin/ordersPage';
 import { StatusPage } from '../../src/pages/wooCommerceAdmin/status';
 
-type MyFixtures = {
+type Pages = {
   loginPage: LoginPage;
   homePage: HomePage;
   settingsPage: SettingsPage;
@@ -17,33 +17,23 @@ type MyFixtures = {
   statusPage: StatusPage;
 };
 
+type MyFixtures = {
+  pages: Pages;
+};
+
 export const test = base.extend<MyFixtures>({
-  loginPage: async ({ page }, use) => {
-    await use(new LoginPage(page));
-  },
+  pages: async ({ page }, use) => {
+    const pages: Pages = {
+      loginPage: new LoginPage(page),
+      homePage: new HomePage(page),
+      settingsPage: new SettingsPage(page),
+      shopPage: new ShopPage(page),
+      basePage: new BasePage(page),
+      ordersPage: new OrdersPage(page),
+      statusPage: new StatusPage(page),
+    };
 
-  homePage: async ({ page }, use) => {
-    await use(new HomePage(page));
-  },
-
-  settingsPage: async ({ page }, use) => {
-    await use(new SettingsPage(page));
-  },
-
-  shopPage: async ({ page }, use) => {
-    await use(new ShopPage(page));
-  },
-
-  basePage: async ({ page }, use) => {
-    await use(new BasePage(page));
-  },
-
-  ordersPage: async ({ page }, use) => {
-    await use(new OrdersPage(page));
-  },
-
-  statusPage: async ({ page }, use) => {
-    await use(new StatusPage(page));
+    await use(pages);
   },
 });
 
