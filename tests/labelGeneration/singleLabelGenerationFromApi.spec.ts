@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures/fixtures';
+import { createWooOrder } from '../../src/api/wooOrderApi';
 
 test.describe.serial('Label Flow', () => {
   let orderId: string;
@@ -12,27 +13,10 @@ test.describe.serial('Label Flow', () => {
     await expect(pages.settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
   });
 
-  test('Order Product from Checkout', async ({ page, pages }) => {
-    await page.goto(`/classic-cart`);
-    await pages.shopPage.clearCartIfNotEmpty();
-    await pages.shopPage.goto();
-    await page.waitForLoadState('domcontentloaded');
-    await pages.shopPage.search.fill('product simple 1');
-    await page.keyboard.press('Enter');
-    await pages.shopPage.addToCart.click();
-    await page.goto(`/classic-checkout`);
-    await pages.shopPage.fillCheckoutDetails('United States (US)', '1100 Wyoming', 'St. Louis', 'Missouri', '63119');
-    await pages.shopPage.selectShippingMethod(serviceName);
-    orderId = await pages.shopPage.cickOnPlaceOrder();
-  });
-
-  test.only('Verify Rates Log', async ({ page, pages }) => {
-    await pages.statusPage.goto();
-    await pages.statusPage.logs.click();
-    await page.waitForLoadState();
-    await pages.statusPage.expectTableHeadersToBePresent();
-    await pages.statusPage.clickCell(1, 2);
-    await page.waitForTimeout(10000);
+  test('Create order from api', async ({ page, pages }) => {
+    const apiOrder = await createWooOrder();
+    orderId = apiOrder.id;
+    expect(apiOrder.id).toBeTruthy();
   });
 
   test('Go To WooCommerce > Orders > Label Generation', async ({ page, pages }) => {

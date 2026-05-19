@@ -1,5 +1,4 @@
 import { type Page, expect, Locator } from '@playwright/test';
-import { faker } from '@faker-js/faker';
 
 export class ShopPage {
   readonly page: Page;
@@ -26,12 +25,11 @@ export class ShopPage {
   readonly quantityInCart: Locator;
   readonly updateCart: Locator;
 
-
   constructor(page: Page) {
     this.page = page;
 
     //Locators
-    this.search = this.page.locator('#woocommerce-product-search-field-0');
+    this.search = this.page.getByPlaceholder('Search products...').first();
     this.addToCart = this.page.locator('form.cart').getByRole('button', { name: 'Add to cart' }).first();
     this.email = this.page.locator('#billing_email');
     this.firstName = this.page.locator('#billing_first_name');
@@ -86,9 +84,9 @@ export class ShopPage {
   }
 
   async fillCheckoutDetails(country: string, street: string, town: string, state: string, zip: any) {
-    await this.email.fill(`${faker.internet.email()}`);
-    await this.firstName.fill(`${faker.person.firstName()}`);
-    await this.lastName.fill(`${faker.person.lastName()}`);
+    await this.email.fill(`test@gmail.com`);
+    await this.firstName.fill(`Test First Name`);
+    await this.lastName.fill(`Test Last Name`);
     await this.countryOrRegion.click();
     await this.countryOrRegionInputField.fill(country);
     await this.page.keyboard.press('Enter');
@@ -98,7 +96,7 @@ export class ShopPage {
     await this.stateInputFiled.fill(state);
     await this.page.keyboard.press('Enter');
     await this.zipCode.fill(zip);
-    await this.phoneNumber.fill(`${faker.phone.number({ style: 'international' })}`);
+    await this.phoneNumber.fill(`1234567890`);
   }
 
   async goto() {
