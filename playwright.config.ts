@@ -5,17 +5,22 @@ dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 export default defineConfig({
   timeout: 60 * 1000,
-  testDir: './tests',
-  fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+
   use: {
     baseURL: process.env.BASE_URL,
     trace: 'on-first-retry',
     storageState: 'playwright/.auth/user.json',
   },
+
+  expect: {
+    timeout: 180 * 1000,
+  },
+  testDir: './tests',
+  fullyParallel: false,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: 1,
+  reporter: 'html',
 
   /* Configure projects for major browsers */
   projects: [

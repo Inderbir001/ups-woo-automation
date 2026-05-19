@@ -1,7 +1,6 @@
 import { test, expect } from '../fixtures/fixtures';
-import { createWooOrder } from '../../src/api/wooOrderApi';
 
-test.describe.serial('Label Flow', () => {
+test.describe.serial('Label Flow with order from checkout', () => {
   let orderId: string;
   let serviceName = 'UPS Next Day Air®';
 
@@ -14,7 +13,7 @@ test.describe.serial('Label Flow', () => {
   });
 
   test.skip('Order Product from Checkout', async ({ page, pages }) => {
-    await page.goto(`/classic-cart`);
+    await page.goto(`/cart`);
     await pages.shopPage.clearCartIfNotEmpty();
     await pages.shopPage.goto();
     await page.waitForLoadState('domcontentloaded');

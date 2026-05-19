@@ -13,6 +13,7 @@ export class OrdersPage {
   readonly verifyPackages: Locator;
   readonly confirmShipmentBtn: Locator;
   readonly printLabelInWSSOrdersPage: Locator;
+  readonly numofPackages: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -25,15 +26,34 @@ export class OrdersPage {
     this.selectServiceeInWSSOrdersPage = this.page.locator('#wf_ups_service_select');
     this.editOrderHeading = this.page.getByText('Edit order');
     this.verifyPackages = this.page.getByText('Step 2: Initiate your shipment.');
+    this.numofPackages = this.page.locator('#wf_ups_package_list tbody tr');
     this.confirmShipmentBtn = this.page.locator('.button.ups_create_shipment');
     this.printLabelInWSSOrdersPage = this.page.getByRole('link', { name: 'Print Label' });
   }
 
+  async numberOfPackagesInOrdersPage(quantityOfProduct: number) {
+    const numOfPackages = (await this.numofPackages.count()) - 1;
+    if (quantityOfProduct === numOfPackages) {
+      console.log(`Number of packages ${numOfPackages} and is matching to the quantity of product.`);
+    } else {
+      console.log(`Number of packages is ${numOfPackages} ❌`);
+    }
+    return numOfPackages;
+  }
+
   async clickAndCheckVerifyPrintLabel() {
-    const [download] = await Promise.all([this.page.waitForEvent('download'), this.printLabelInWSSOrdersPage.click()]);
-    const fileName = download.suggestedFilename();
-    console.log('Label Downloaded: ', fileName);
-    expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
+    const labels = this.printLabelInWSSOrdersPage;
+    const count = await labels.count();
+
+    for (let i = 0; i < count; i++) {
+      const [download] = await Promise.all([this.page.waitForEvent('download'), labels.nth(i).click()]);
+
+      const fileName = download.suggestedFilename();
+
+      console.log(`Label ${i + 1} Downloaded: ${fileName}`);
+
+      expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
+    }
   }
 
   async chooseServiceInWssOrdersPage(serviceName: string) {

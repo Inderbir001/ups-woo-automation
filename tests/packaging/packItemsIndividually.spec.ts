@@ -1,12 +1,22 @@
 import { test, expect } from '../fixtures/fixtures';
 import { createWooOrder } from '../../src/api/wooOrderApi';
 
-test.describe.serial('Label Flow with Api Order', () => {
+test.describe.serial('Pack Items Individually', () => {
   let orderId: string;
   let serviceName = 'UPS Next Day Air®';
+  let productId = 1946;
+  let quantityOfProduct = 2;
+
+  test('Change Packaging type to "Default: Pack items individually"', async ({ page, pages }) => {
+    await pages.homePage.goto();
+    await pages.basePage.selectAdminMenu('UPS Shipping', 'Settings');
+    await pages.settingsPage.selectTab('Packaging');
+    await pages.settingsPage.selectParcelPackingOption('Default: Pack items individually');
+    await expect(pages.settingsPage.parcelPackingDropdown).toContainText('Default: Pack items individually');
+  });
 
   test('Create order from api', async ({ page, pages }) => {
-    const apiOrder = await createWooOrder();
+    const apiOrder = await createWooOrder(productId, quantityOfProduct);
     orderId = apiOrder.id;
     expect(apiOrder.id).toBeTruthy();
   });
@@ -17,6 +27,9 @@ test.describe.serial('Label Flow with Api Order', () => {
     await pages.ordersPage.selectOrderInWSSOrdersPage(orderId);
     await expect(pages.ordersPage.generatePackagesBtn).toBeVisible();
     await pages.ordersPage.generatePackagesBtn.click();
+    await page.waitForLoadState();
+    const numOfPackages = await pages.ordersPage.numberOfPackagesInOrdersPage(quantityOfProduct);
+    expect(numOfPackages).toBe(quantityOfProduct);
     await expect(pages.ordersPage.calculateRatesBtn).toBeVisible();
     await pages.ordersPage.calculateRatesBtn.click();
     await expect(pages.ordersPage.verifyPackages).toBeVisible();
@@ -26,7 +39,7 @@ test.describe.serial('Label Flow with Api Order', () => {
     await page.waitForLoadState();
     await page.goBack();
     await page.waitForLoadState('load');
-    await expect(pages.ordersPage.printLabelInWSSOrdersPage).toBeVisible();
+    await expect(pages.ordersPage.printLabelInWSSOrdersPage).toHaveCount(quantityOfProduct);
     await pages.ordersPage.clickAndCheckVerifyPrintLabel();
   });
 });
