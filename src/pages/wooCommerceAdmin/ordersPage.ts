@@ -14,6 +14,8 @@ export class OrdersPage {
   readonly confirmShipmentBtn: Locator;
   readonly printLabelInWSSOrdersPage: Locator;
   readonly numofPackages: Locator;
+  readonly warningTextVoidShipment: Locator;
+  readonly voidShipmentInWSSOrdersPage: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -29,6 +31,8 @@ export class OrdersPage {
     this.numofPackages = this.page.locator('#wf_ups_package_list tbody tr');
     this.confirmShipmentBtn = this.page.locator('.button.ups_create_shipment');
     this.printLabelInWSSOrdersPage = this.page.getByRole('link', { name: 'Print Label' });
+    this.voidShipmentInWSSOrdersPage = this.page.getByRole('link', { name: 'Void Shipment' });
+    this.warningTextVoidShipment = this.page.getByText(`Please note that void is not possible in 'Test' mode, as there is no real shipment is created with UPS.`);
   }
 
   async numberOfPackagesInOrdersPage(quantityOfProduct: number) {
