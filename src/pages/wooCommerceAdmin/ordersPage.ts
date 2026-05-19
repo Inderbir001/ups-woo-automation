@@ -13,9 +13,12 @@ export class OrdersPage {
   readonly verifyPackages: Locator;
   readonly confirmShipmentBtn: Locator;
   readonly printLabelInWSSOrdersPage: Locator;
+  readonly printReturnLabelInWSSOrdersPage: Locator;
   readonly numofPackages: Locator;
   readonly warningTextVoidShipment: Locator;
   readonly voidShipmentInWSSOrdersPage: Locator;
+  readonly returnServiceSelect: Locator;
+  readonly generateReturnLabel: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -31,8 +34,15 @@ export class OrdersPage {
     this.numofPackages = this.page.locator('#wf_ups_package_list tbody tr');
     this.confirmShipmentBtn = this.page.locator('.button.ups_create_shipment');
     this.printLabelInWSSOrdersPage = this.page.getByRole('link', { name: 'Print Label' });
+    this.printReturnLabelInWSSOrdersPage = this.page.getByRole('link', { name: 'Print Return Label' });
     this.voidShipmentInWSSOrdersPage = this.page.getByRole('link', { name: 'Void Shipment' });
     this.warningTextVoidShipment = this.page.getByText(`Please note that void is not possible in 'Test' mode, as there is no real shipment is created with UPS.`);
+    this.returnServiceSelect = this.page.locator('#return_label_service');
+    this.generateReturnLabel = this.page.getByRole('link', { name: 'Generate Return Label' });
+  }
+
+  async selectReturnService(serviceName: string) {
+    await this.returnServiceSelect.selectOption({ label: serviceName });
   }
 
   async numberOfPackagesInOrdersPage(quantityOfProduct: number) {
@@ -56,6 +66,17 @@ export class OrdersPage {
 
       console.log(`Label ${i + 1} Downloaded: ${fileName}`);
 
+      expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
+    }
+  }
+
+  async clickAndCheckVerifyPrintReturnLabel() {
+    const labels = this.printReturnLabelInWSSOrdersPage;
+    const count = await labels.count();
+    for (let i = 0; i < count; i++) {
+      const [download] = await Promise.all([this.page.waitForEvent('download'), labels.nth(i).click()]);
+      const fileName = download.suggestedFilename();
+      console.log(`Label ${i + 1} Downloaded: ${fileName}`);
       expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
     }
   }
