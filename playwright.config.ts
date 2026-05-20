@@ -12,9 +12,6 @@ export default defineConfig({
     storageState: 'playwright/.auth/user.json',
   },
 
-  expect: {
-    timeout: 180 * 1000,
-  },
   testDir: './tests',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

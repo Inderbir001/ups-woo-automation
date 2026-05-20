@@ -19,6 +19,8 @@ export class OrdersPage {
   readonly voidShipmentInWSSOrdersPage: Locator;
   readonly returnServiceSelect: Locator;
   readonly generateReturnLabel: Locator;
+  readonly clientSideResetBtn: Locator;
+  readonly voidShipmentSuccessMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -36,9 +38,11 @@ export class OrdersPage {
     this.printLabelInWSSOrdersPage = this.page.getByRole('link', { name: 'Print Label' });
     this.printReturnLabelInWSSOrdersPage = this.page.getByRole('link', { name: 'Print Return Label' });
     this.voidShipmentInWSSOrdersPage = this.page.getByRole('link', { name: 'Void Shipment' });
+    this.clientSideResetBtn = this.page.getByRole('link', { name: 'Client Side Reset' });
     this.warningTextVoidShipment = this.page.getByText(`Please note that void is not possible in 'Test' mode, as there is no real shipment is created with UPS.`);
     this.returnServiceSelect = this.page.locator('#return_label_service');
     this.generateReturnLabel = this.page.getByRole('link', { name: 'Generate Return Label' });
+    this.voidShipmentSuccessMessage = this.page.getByText('UPS: Client side reset of labels and shipment completed. You can re-initiate shipment now.');
   }
 
   async selectReturnService(serviceName: string) {

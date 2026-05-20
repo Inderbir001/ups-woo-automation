@@ -30,5 +30,8 @@ test.describe.serial('Void Shipment', () => {
     await pages.ordersPage.voidShipmentInWSSOrdersPage.click();
     await page.waitForLoadState();
     await expect(pages.ordersPage.warningTextVoidShipment).toBeVisible();
+    await expect(pages.ordersPage.clientSideResetBtn).toBeVisible();
+    await pages.ordersPage.clientSideResetBtn.click();
+    await expect(pages.ordersPage.voidShipmentSuccessMessage).toBeVisible();
   });
 });
