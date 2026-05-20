@@ -21,11 +21,13 @@ export class OrdersPage {
   readonly generateReturnLabel: Locator;
   readonly clientSideResetBtn: Locator;
   readonly voidShipmentSuccessMessage: Locator;
+  readonly bulkActionDropdown: Locator;
+  readonly applyBulkActionBtn: Locator;
+  readonly bulkActionSuccessMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
 
-    //Locators
     this.allOrders = this.page.locator('#the-list');
     this.orderNumber = this.page.locator('a.order-view');
     this.generatePackagesBtn = this.page.locator('.button.ups_generate_packages');
@@ -43,6 +45,9 @@ export class OrdersPage {
     this.returnServiceSelect = this.page.locator('#return_label_service');
     this.generateReturnLabel = this.page.getByRole('link', { name: 'Generate Return Label' });
     this.voidShipmentSuccessMessage = this.page.getByText('UPS: Client side reset of labels and shipment completed. You can re-initiate shipment now.');
+    this.bulkActionDropdown = this.page.locator('#bulk-action-selector-top');
+    this.applyBulkActionBtn = this.page.locator('#doaction');
+    this.bulkActionSuccessMessage = this.page.locator('.notice.notice-success');
   }
 
   async selectReturnService(serviceName: string) {
@@ -59,17 +64,27 @@ export class OrdersPage {
     return numOfPackages;
   }
 
+  async verifyBulkShipmentSuccess(orderIds: string[]) {
+    await expect(this.bulkActionSuccessMessage).toBeVisible();
+    for (const orderId of orderIds) {
+      await expect(this.bulkActionSuccessMessage).toContainText(`Order #${orderId}: Shipment accepted successfully. Labels are ready for printing.`);
+    }
+  }
+
+  async verifyBulkPdfDownload() {
+    const [download] = await Promise.all([this.page.waitForEvent('download'), this.clickApplyBulkAction()]);
+    const fileName = download.suggestedFilename();
+    console.log(`Downloaded File: ${fileName}`);
+    expect(fileName).toMatch(/^UPS-Shipping-Labels-\d{4}-\d{2}-\d{2}\.pdf$/);
+  }
+
   async clickAndCheckVerifyPrintLabel() {
     const labels = this.printLabelInWSSOrdersPage;
     const count = await labels.count();
-
     for (let i = 0; i < count; i++) {
       const [download] = await Promise.all([this.page.waitForEvent('download'), labels.nth(i).click()]);
-
       const fileName = download.suggestedFilename();
-
       console.log(`Label ${i + 1} Downloaded: ${fileName}`);
-
       expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
     }
   }
@@ -98,6 +113,28 @@ export class OrdersPage {
     const orderLink = orderRow.locator('a.order-view');
     await orderLink.click();
     await expect(this.page.getByRole('heading', { name: 'Edit order' })).toBeVisible();
+  }
+
+  async selectOrdersInWSSOrdersPage(orderIds: string[]) {
+    await this.page.waitForLoadState();
+    await expect(this.allOrders).toBeVisible();
+    for (const orderId of orderIds) {
+      const checkbox = this.page.locator(`#cb-select-${orderId}`);
+      await expect(checkbox).toBeVisible({ timeout: 15000 });
+      await checkbox.check();
+    }
+  }
+
+  async selectBulkAction(action: string) {
+    await expect(this.bulkActionDropdown).toBeVisible();
+    await this.bulkActionDropdown.selectOption(action);
+    console.log(`Bulk action selected: ${action}`);
+  }
+
+  async clickApplyBulkAction() {
+    await expect(this.applyBulkActionBtn).toBeVisible();
+    await this.applyBulkActionBtn.click();
+    console.log('Bulk action applied ✅');
   }
 
   async goto() {
