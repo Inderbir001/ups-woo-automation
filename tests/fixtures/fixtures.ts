@@ -38,3 +38,4 @@ export const test = base.extend<MyFixtures>({
 });
 
 export { expect } from '@playwright/test';
+export { upsServiceCodes } from '../testData/upsServiceCodes';

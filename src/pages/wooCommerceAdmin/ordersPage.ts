@@ -1,4 +1,6 @@
 import { type Page, expect, Locator } from '@playwright/test';
+import { readFileSync } from 'fs';
+import { verifyShipmentRequest, verifyShipmentResponse } from '../../../tests/testData/shipmentLogs/shipmentVerifier';
 
 export class OrdersPage {
   readonly page: Page;
@@ -24,6 +26,8 @@ export class OrdersPage {
   readonly bulkActionDropdown: Locator;
   readonly applyBulkActionBtn: Locator;
   readonly bulkActionSuccessMessage: Locator;
+  readonly shipmentConfirmRequestPre: Locator;
+  readonly shipmentConfirmResponsePre: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -48,6 +52,8 @@ export class OrdersPage {
     this.bulkActionDropdown = this.page.locator('#bulk-action-selector-top');
     this.applyBulkActionBtn = this.page.locator('#doaction');
     this.bulkActionSuccessMessage = this.page.locator('.notice.notice-success');
+    this.shipmentConfirmRequestPre = this.page.locator('pre').nth(0);
+    this.shipmentConfirmResponsePre = this.page.locator('pre').nth(1);
   }
 
   async selectReturnService(serviceName: string) {
@@ -78,7 +84,7 @@ export class OrdersPage {
     expect(fileName).toMatch(/^UPS-Shipping-Labels-\d{4}-\d{2}-\d{2}\.pdf$/);
   }
 
-  async clickAndCheckVerifyPrintLabel() {
+  async clickAndCheckVerifyPrintLabel(expectedLabelBuffers: Buffer[] = []) {
     const labels = this.printLabelInWSSOrdersPage;
     const count = await labels.count();
     for (let i = 0; i < count; i++) {
@@ -86,17 +92,56 @@ export class OrdersPage {
       const fileName = download.suggestedFilename();
       console.log(`Label ${i + 1} Downloaded: ${fileName}`);
       expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
+
+      // Verify the downloaded file is a valid GIF
+      const filePath = await download.path();
+      expect(filePath).toBeTruthy();
+      const fileBuffer = readFileSync(filePath!);
+      expect(fileBuffer.subarray(0, 3).toString('ascii')).toBe('GIF');
+      expect(fileBuffer.length).toBeGreaterThan(1000);
+      console.log(`Label ${i + 1} file verified: valid GIF, ${fileBuffer.length} bytes`);
+
+      // Cross-verify downloaded file matches the GraphicImage from the UPS response
+      if (expectedLabelBuffers[i]) {
+        expect(fileBuffer.equals(expectedLabelBuffers[i])).toBeTruthy();
+        console.log(`Label ${i + 1} cross-verified: downloaded file matches UPS response GraphicImage ✅`);
+      }
+
+      // Open the label in a new tab to view it
+      const labelPage = await this.page.context().newPage();
+      const dataUrl = `data:image/gif;base64,${fileBuffer.toString('base64')}`;
+      await labelPage.setContent(`<html><body style="margin:0;background:#fff"><img src="${dataUrl}" style="max-width:100%"></body></html>`);
+      await labelPage.waitForLoadState('load');
+      await labelPage.close();
     }
   }
 
-  async clickAndCheckVerifyPrintReturnLabel() {
+  async clickAndCheckVerifyPrintReturnLabel(expectedLabelBuffers: Buffer[] = []) {
     const labels = this.printReturnLabelInWSSOrdersPage;
     const count = await labels.count();
     for (let i = 0; i < count; i++) {
       const [download] = await Promise.all([this.page.waitForEvent('download'), labels.nth(i).click()]);
       const fileName = download.suggestedFilename();
-      console.log(`Label ${i + 1} Downloaded: ${fileName}`);
+      console.log(`Return Label ${i + 1} Downloaded: ${fileName}`);
       expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
+
+      const filePath = await download.path();
+      expect(filePath).toBeTruthy();
+      const fileBuffer = readFileSync(filePath!);
+      expect(fileBuffer.subarray(0, 3).toString('ascii')).toBe('GIF');
+      expect(fileBuffer.length).toBeGreaterThan(1000);
+      console.log(`Return Label ${i + 1} file verified: valid GIF, ${fileBuffer.length} bytes`);
+
+      if (expectedLabelBuffers[i]) {
+        expect(fileBuffer.equals(expectedLabelBuffers[i])).toBeTruthy();
+        console.log(`Return Label ${i + 1} cross-verified: downloaded file matches UPS response GraphicImage ✅`);
+      }
+
+      const labelPage = await this.page.context().newPage();
+      const dataUrl = `data:image/gif;base64,${fileBuffer.toString('base64')}`;
+      await labelPage.setContent(`<html><body style="margin:0;background:#fff"><img src="${dataUrl}" style="max-width:100%"></body></html>`);
+      await labelPage.waitForLoadState('load');
+      await labelPage.close();
     }
   }
 
@@ -112,7 +157,7 @@ export class OrdersPage {
     await expect(orderRow).toBeVisible({ timeout: 15000 });
     const orderLink = orderRow.locator('a.order-view');
     await orderLink.click();
-    await expect(this.page.getByRole('heading', { name: 'Edit order' })).toBeVisible();
+    await expect(this.page.getByRole('heading', { name: 'Edit order' })).toBeVisible({ timeout: 15000 });
   }
 
   async selectOrdersInWSSOrdersPage(orderIds: string[]) {
@@ -135,6 +180,36 @@ export class OrdersPage {
     await expect(this.applyBulkActionBtn).toBeVisible();
     await this.applyBulkActionBtn.click();
     console.log('Bulk action applied ✅');
+  }
+
+  async verifyShipmentConfirmLog(
+    orderId: string,
+    expectedServiceCode: string,
+    serviceName: string,
+    orderShipping: { first_name: string; last_name: string; address_1: string; city: string; state: string; postcode: string; country: string; phone: string },
+  ): Promise<Buffer[]> {
+    await expect(this.shipmentConfirmRequestPre).toBeVisible();
+    await expect(this.shipmentConfirmResponsePre).toBeVisible();
+
+    const req = JSON.parse(await this.shipmentConfirmRequestPre.innerText());
+    const res = JSON.parse(await this.shipmentConfirmResponsePre.innerText());
+
+    verifyShipmentRequest(req, orderId, expectedServiceCode, serviceName, orderShipping);
+    return verifyShipmentResponse(res, orderId, req);
+  }
+
+  async verifyReturnShipmentConfirmLog(
+    orderId: string,
+    orderShipping: { first_name: string; last_name: string; address_1: string; city: string; state: string; postcode: string; country: string; phone: string },
+  ): Promise<Buffer[]> {
+    await expect(this.shipmentConfirmRequestPre).toBeVisible();
+    await expect(this.shipmentConfirmResponsePre).toBeVisible();
+
+    const req = JSON.parse(await this.shipmentConfirmRequestPre.innerText());
+    const res = JSON.parse(await this.shipmentConfirmResponsePre.innerText());
+
+    verifyShipmentRequest(req, orderId, '', '', orderShipping, true);
+    return verifyShipmentResponse(res, orderId, req);
   }
 
   async goto() {
