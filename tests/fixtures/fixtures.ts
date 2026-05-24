@@ -15,6 +15,7 @@ type Pages = {
   basePage: BasePage;
   ordersPage: OrdersPage;
   statusPage: StatusPage;
+  
 };
 
 type MyFixtures = {

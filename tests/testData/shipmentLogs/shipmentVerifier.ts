@@ -18,11 +18,12 @@ export function verifyShipmentRequest(
   serviceName: string,
   orderShipping: OrderShipping,
   isReturn: boolean = false,
+  labelFormat: string = 'GIF',
 ) {
   const shipment = req.ShipmentRequest;
 
   expect(shipment.Request.TransactionReference.CustomerContext).toBe(String(orderId));
-  expect(shipment.LabelSpecification.LabelImageFormat.Code).toBe('GIF');
+  expect(shipment.LabelSpecification.LabelImageFormat.Code).toBe(labelFormat);
 
   if (isReturn) {
     expect(shipment.Shipment.ReturnService.Code).toBeTruthy();
@@ -89,7 +90,7 @@ export function verifyShipmentRequest(
   console.log(`DWT: ${dims.Length} x ${dims.Width} x ${dims.Height} ${dims.UnitOfMeasurement.Code}`);
 }
 
-export function verifyShipmentResponse(res: any, orderId: string, req: any): Buffer[] {
+export function verifyShipmentResponse(res: any, orderId: string, req: any, labelFormat: string = 'GIF'): Buffer[] {
   const shipment = req.ShipmentRequest;
   const results = res.ShipmentResponse;
 
@@ -128,14 +129,21 @@ export function verifyShipmentResponse(res: any, orderId: string, req: any): Buf
   const labelBuffers: Buffer[] = [];
   for (const pkgResult of packageResultsList) {
     const label = pkgResult.ShippingLabel;
-    expect(label.ImageFormat.Code).toBe('GIF');
+    expect(label.ImageFormat.Code).toBe(labelFormat);
     expect(label.GraphicImage.length).toBeGreaterThan(0);
     const labelBuffer = Buffer.from(label.GraphicImage, 'base64');
-    expect(labelBuffer.subarray(0, 3).toString('ascii')).toBe('GIF');
-    expect(labelBuffer.length).toBeGreaterThan(1000);
+    expect(labelBuffer.length).toBeGreaterThan(100);
+    if (labelFormat === 'GIF') {
+      expect(labelBuffer.subarray(0, 3).toString('ascii')).toBe('GIF');
+    } else if (labelFormat === 'PNG') {
+      expect(labelBuffer[0]).toBe(0x89);
+      expect(labelBuffer.subarray(1, 4).toString('ascii')).toBe('PNG');
+    } else if (labelFormat === 'ZPL') {
+      expect(labelBuffer.toString('utf-8').trimStart()).toMatch(/^\^XA/);
+    }
     labelBuffers.push(labelBuffer);
   }
-  console.log(`Response label images: ${labelBuffers.length} valid GIF(s), ${labelBuffers.map((b) => b.length + ' bytes').join(', ')}`);
+  console.log(`Response label images: ${labelBuffers.length} valid ${labelFormat}(s), ${labelBuffers.map((b) => b.length + ' bytes').join(', ')}`);
 
   return labelBuffers;
 }

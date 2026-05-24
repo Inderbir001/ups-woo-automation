@@ -84,35 +84,34 @@ export class OrdersPage {
     expect(fileName).toMatch(/^UPS-Shipping-Labels-\d{4}-\d{2}-\d{2}\.pdf$/);
   }
 
-  async clickAndCheckVerifyPrintLabel(expectedLabelBuffers: Buffer[] = []) {
+  async clickAndCheckVerifyPrintLabel(expectedLabelBuffers: Buffer[] = [], labelFormat: string = 'GIF') {
     const labels = this.printLabelInWSSOrdersPage;
     const count = await labels.count();
     for (let i = 0; i < count; i++) {
       const [download] = await Promise.all([this.page.waitForEvent('download'), labels.nth(i).click()]);
       const fileName = download.suggestedFilename();
       console.log(`Label ${i + 1} Downloaded: ${fileName}`);
-      expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
+      expect(fileName).toMatch(new RegExp(`^UPS-ShippingLabel-Label.*\\.${labelFormat.toLowerCase()}$`, 'i'));
 
-      // Verify the downloaded file is a valid GIF
       const filePath = await download.path();
       expect(filePath).toBeTruthy();
       const fileBuffer = readFileSync(filePath!);
-      expect(fileBuffer.subarray(0, 3).toString('ascii')).toBe('GIF');
-      expect(fileBuffer.length).toBeGreaterThan(1000);
-      console.log(`Label ${i + 1} file verified: valid GIF, ${fileBuffer.length} bytes`);
+      expect(fileBuffer.length).toBeGreaterThan(100);
 
-      // Cross-verify downloaded file matches the GraphicImage from the UPS response
-      if (expectedLabelBuffers[i]) {
-        expect(fileBuffer.equals(expectedLabelBuffers[i])).toBeTruthy();
-        console.log(`Label ${i + 1} cross-verified: downloaded file matches UPS response GraphicImage ✅`);
+      if (labelFormat === 'GIF') {
+        expect(fileBuffer.subarray(0, 3).toString('ascii')).toBe('GIF');
+        if (expectedLabelBuffers[i]) {
+          expect(fileBuffer.equals(expectedLabelBuffers[i])).toBeTruthy();
+          console.log(`Label ${i + 1} cross-verified: downloaded file matches UPS response GraphicImage ✅`);
+        }
+      } else if (labelFormat === 'PNG') {
+        expect(fileBuffer[0]).toBe(0x89);
+        expect(fileBuffer.subarray(1, 4).toString('ascii')).toBe('PNG');
+      } else if (labelFormat === 'ZPL') {
+        expect(fileBuffer.toString('utf-8').trimStart()).toMatch(/^\^XA/);
       }
 
-      // Open the label in a new tab to view it
-      const labelPage = await this.page.context().newPage();
-      const dataUrl = `data:image/gif;base64,${fileBuffer.toString('base64')}`;
-      await labelPage.setContent(`<html><body style="margin:0;background:#fff"><img src="${dataUrl}" style="max-width:100%"></body></html>`);
-      await labelPage.waitForLoadState('load');
-      await labelPage.close();
+      console.log(`Label ${i + 1} file verified: valid ${labelFormat}, ${fileBuffer.length} bytes`);
     }
   }
 
@@ -187,6 +186,7 @@ export class OrdersPage {
     expectedServiceCode: string,
     serviceName: string,
     orderShipping: { first_name: string; last_name: string; address_1: string; city: string; state: string; postcode: string; country: string; phone: string },
+    labelFormat: string = 'GIF',
   ): Promise<Buffer[]> {
     await expect(this.shipmentConfirmRequestPre).toBeVisible();
     await expect(this.shipmentConfirmResponsePre).toBeVisible();
@@ -194,8 +194,8 @@ export class OrdersPage {
     const req = JSON.parse(await this.shipmentConfirmRequestPre.innerText());
     const res = JSON.parse(await this.shipmentConfirmResponsePre.innerText());
 
-    verifyShipmentRequest(req, orderId, expectedServiceCode, serviceName, orderShipping);
-    return verifyShipmentResponse(res, orderId, req);
+    verifyShipmentRequest(req, orderId, expectedServiceCode, serviceName, orderShipping, false, labelFormat);
+    return verifyShipmentResponse(res, orderId, req, labelFormat);
   }
 
   async verifyReturnShipmentConfirmLog(

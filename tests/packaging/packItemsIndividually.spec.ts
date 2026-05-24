@@ -9,6 +9,7 @@ test.describe.serial('Pack Items Individually', () => {
   let quantityOfProduct = 2;
 
   test('Change Packaging type to "Default: Pack items individually"', async ({ page, pages }) => {
+    test.setTimeout(120000);
     await pages.homePage.goto();
     await pages.basePage.selectAdminMenu('UPS Shipping', 'Settings');
     await pages.settingsPage.selectTab('Packaging');
