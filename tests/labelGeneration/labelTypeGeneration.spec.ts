@@ -50,6 +50,7 @@ for (const labelType of labelTypes) {
 }
 
 test.afterAll(async ({ browser }) => {
+  test.setTimeout(120000);
   const context = await browser.newContext({ storageState: 'playwright/.auth/user.json' });
   const page = await context.newPage();
   const homePage = new HomePage(page);

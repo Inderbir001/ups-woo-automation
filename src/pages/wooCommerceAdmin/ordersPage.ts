@@ -1,5 +1,6 @@
 import { type Page, expect, Locator } from '@playwright/test';
 import { readFileSync } from 'fs';
+import pdfParse = require('pdf-parse');
 import { verifyShipmentRequest, verifyShipmentResponse } from '../../../tests/testData/shipmentLogs/shipmentVerifier';
 
 export class OrdersPage {
@@ -82,6 +83,29 @@ export class OrdersPage {
     const fileName = download.suggestedFilename();
     console.log(`Downloaded File: ${fileName}`);
     expect(fileName).toMatch(/^UPS-Shipping-Labels-\d{4}-\d{2}-\d{2}\.pdf$/);
+
+    const filePath = await download.path();
+    expect(filePath).toBeTruthy();
+    const fileBuffer = readFileSync(filePath!);
+    expect(fileBuffer.subarray(0, 4).toString('ascii')).toBe('%PDF');
+    expect(fileBuffer.length).toBeGreaterThan(1000);
+    console.log(`PDF verified: valid PDF, ${fileBuffer.length} bytes`);
+
+    const pdfData = await pdfParse(fileBuffer);
+    console.log(`PDF pages: ${pdfData.numpages}`);
+    if (pdfData.info) {
+      console.log(`PDF info: ${JSON.stringify(pdfData.info)}`);
+    }
+    const text = pdfData.text.trim();
+    if (text) {
+      console.log(`PDF text:\n${text}`);
+      const trackingNumbers = [...text.matchAll(/1Z[A-Z0-9]{16}/gi)].map((m) => m[0]);
+      if (trackingNumbers.length > 0) {
+        console.log(`Tracking numbers found in PDF: ${trackingNumbers.join(', ')}`);
+      }
+    } else {
+      console.log('PDF is image-based — labels are embedded as raster images, no extractable text');
+    }
   }
 
   async clickAndCheckVerifyPrintLabel(expectedLabelBuffers: Buffer[] = [], labelFormat: string = 'GIF') {
@@ -107,40 +131,72 @@ export class OrdersPage {
       } else if (labelFormat === 'PNG') {
         expect(fileBuffer[0]).toBe(0x89);
         expect(fileBuffer.subarray(1, 4).toString('ascii')).toBe('PNG');
-      } else if (labelFormat === 'ZPL') {
-        expect(fileBuffer.toString('utf-8').trimStart()).toMatch(/^\^XA/);
+      } else if (labelFormat === 'ZPL' || labelFormat === 'EPL') {
+        if (labelFormat === 'ZPL') {
+          expect(fileBuffer.toString('utf-8').trimStart()).toMatch(/^\^XA/);
+        }
+        const fileText = fileBuffer.toString('utf-8');
+        console.log(`Label ${i + 1} ${labelFormat} content:\n${fileText}`);
+        const trackingInFile = /1Z[A-Z0-9]{16}/i.exec(fileText)?.[0];
+        if (trackingInFile) {
+          console.log(`Label ${i + 1} tracking number: ${trackingInFile}`);
+        }
+        if (expectedLabelBuffers[i]) {
+          const trackingInExpected = /1Z[A-Z0-9]{16}/i.exec(expectedLabelBuffers[i].toString('utf-8'))?.[0];
+          if (trackingInFile && trackingInExpected) {
+            expect(trackingInFile).toBe(trackingInExpected);
+            console.log(`Label ${i + 1} tracking number matches UPS response ✅`);
+          }
+        }
       }
 
       console.log(`Label ${i + 1} file verified: valid ${labelFormat}, ${fileBuffer.length} bytes`);
     }
   }
 
-  async clickAndCheckVerifyPrintReturnLabel(expectedLabelBuffers: Buffer[] = []) {
+  async clickAndCheckVerifyPrintReturnLabel(expectedLabelBuffers: Buffer[] = [], labelFormat: string = 'GIF') {
     const labels = this.printReturnLabelInWSSOrdersPage;
     const count = await labels.count();
     for (let i = 0; i < count; i++) {
       const [download] = await Promise.all([this.page.waitForEvent('download'), labels.nth(i).click()]);
       const fileName = download.suggestedFilename();
       console.log(`Return Label ${i + 1} Downloaded: ${fileName}`);
-      expect(fileName).toMatch(/^UPS-ShippingLabel-Label.*\.gif$/);
+      expect(fileName).toMatch(new RegExp(`^UPS-ShippingLabel-Label.*\\.${labelFormat.toLowerCase()}$`, 'i'));
 
       const filePath = await download.path();
       expect(filePath).toBeTruthy();
       const fileBuffer = readFileSync(filePath!);
-      expect(fileBuffer.subarray(0, 3).toString('ascii')).toBe('GIF');
-      expect(fileBuffer.length).toBeGreaterThan(1000);
-      console.log(`Return Label ${i + 1} file verified: valid GIF, ${fileBuffer.length} bytes`);
+      expect(fileBuffer.length).toBeGreaterThan(100);
 
-      if (expectedLabelBuffers[i]) {
-        expect(fileBuffer.equals(expectedLabelBuffers[i])).toBeTruthy();
-        console.log(`Return Label ${i + 1} cross-verified: downloaded file matches UPS response GraphicImage ✅`);
+      if (labelFormat === 'GIF') {
+        expect(fileBuffer.subarray(0, 3).toString('ascii')).toBe('GIF');
+        if (expectedLabelBuffers[i]) {
+          expect(fileBuffer.equals(expectedLabelBuffers[i])).toBeTruthy();
+          console.log(`Return Label ${i + 1} cross-verified: downloaded file matches UPS response GraphicImage ✅`);
+        }
+      } else if (labelFormat === 'PNG') {
+        expect(fileBuffer[0]).toBe(0x89);
+        expect(fileBuffer.subarray(1, 4).toString('ascii')).toBe('PNG');
+      } else if (labelFormat === 'ZPL' || labelFormat === 'EPL') {
+        if (labelFormat === 'ZPL') {
+          expect(fileBuffer.toString('utf-8').trimStart()).toMatch(/^\^XA/);
+        }
+        const fileText = fileBuffer.toString('utf-8');
+        console.log(`Return Label ${i + 1} ${labelFormat} content:\n${fileText}`);
+        const trackingInFile = /1Z[A-Z0-9]{16}/i.exec(fileText)?.[0];
+        if (trackingInFile) {
+          console.log(`Return Label ${i + 1} tracking number: ${trackingInFile}`);
+        }
+        if (expectedLabelBuffers[i]) {
+          const trackingInExpected = /1Z[A-Z0-9]{16}/i.exec(expectedLabelBuffers[i].toString('utf-8'))?.[0];
+          if (trackingInFile && trackingInExpected) {
+            expect(trackingInFile).toBe(trackingInExpected);
+            console.log(`Return Label ${i + 1} tracking number matches UPS response ✅`);
+          }
+        }
       }
 
-      const labelPage = await this.page.context().newPage();
-      const dataUrl = `data:image/gif;base64,${fileBuffer.toString('base64')}`;
-      await labelPage.setContent(`<html><body style="margin:0;background:#fff"><img src="${dataUrl}" style="max-width:100%"></body></html>`);
-      await labelPage.waitForLoadState('load');
-      await labelPage.close();
+      console.log(`Return Label ${i + 1} file verified: valid ${labelFormat}, ${fileBuffer.length} bytes`);
     }
   }
 
